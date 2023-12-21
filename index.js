@@ -31,8 +31,21 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db("myTask").collection("users");
+    const tasksCollection = client.db("myTask").collection("tasks");
 
-    // / User data collection 
+    // tasksCollection save \\\
+    app.post("/tasks", async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
+      res.send(result);
+    });
+
+    app.get("/tasks", async (req, res) => {
+      const result = await tasksCollection.find().toArray();
+      res.send(result);
+    });
+
+    // / User data collection
     app.get("/users", async (req, res) => {
       const cursor = userCollection.find();
       const result = await cursor.toArray();
@@ -43,7 +56,7 @@ async function run() {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
       res.send(result);
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
