@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("myTask").collection("users");
     const tasksCollection = client.db("myTask").collection("tasks");
@@ -43,6 +43,26 @@ async function run() {
     app.get("/tasks", async (req, res) => {
       const result = await tasksCollection.find().toArray();
       res.send(result);
+    });
+    // Update task by ID
+    app.put("/tasks/:id", async (req, res) => {
+      const { id } = req.params;
+      const { title, description, priority } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const update = {
+        $set: { title, description, priority },
+      };
+      const options = { returnDocument: "after" };
+      const updatedTask = await tasksCollection.findOneAndUpdate(filter, update, options);
+      res.send(updatedTask);
+    });
+
+    // Delete task by ID
+    app.delete("/tasks/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const deletedTask = await tasksCollection.deleteOne(filter);
+      res.send(deletedTask);
     });
 
     // / User data collection
